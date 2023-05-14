@@ -6,6 +6,5 @@ pub mod entangled_pair;
 pub mod filter;
 pub mod qubit;
 pub mod tensor;
-pub mod tensor_mul;
 pub mod transposable;
 pub mod outer_mul;
