@@ -3,8 +3,6 @@ use std::{
     ops::{Add, Mul},
 };
 
-use crate::transposable::Transposable;
-
 #[derive(Clone, PartialEq, Debug)]
 pub struct Tensor<T, const N: usize, const O: usize>(pub [T; N]);
 impl<T, const N: usize, const O: usize> Tensor<T, N, O> {
@@ -27,20 +25,6 @@ where
 {
     fn default() -> Self {
         Tensor([(); N].map(|_| T::default()))
-    }
-}
-
-impl<T, const N: usize, const O: usize> Transposable for Tensor<T, N, O>
-where
-    T: Clone + Transposable,
-{
-    type Output = Tensor<<T as Transposable>::Output, N, O>;
-
-    fn T(&self) -> Self::Output {
-        // TODO: This is wrong
-        let t_values: [<T as Transposable>::Output; N] = self.0.clone().map(|it| it.T());
-
-        Tensor::<<T as Transposable>::Output, N, O>(t_values)
     }
 }
 
