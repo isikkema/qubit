@@ -6,7 +6,7 @@ use std::{
 
 use crate::{tensor_mul::TensorMul, transposable::Transposable, util::flatten_arrays};
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Bra<T, const N: usize>(pub [T; N])
 where
     T: Clone + Transposable;
@@ -193,6 +193,43 @@ where
     }
 }
 
+impl<V, U, T, const N: usize, const X: usize, const Y: usize> TensorMul<Bra<Ket<U, Y>, X>>
+    for Ket<T, N>
+where
+    <T as Mul<U>>::Output: Clone + Transposable,
+    <T as Mul<Ket<U, Y>>>::Output: Clone + Transposable,
+    [(); N * Y]:,
+    V: Clone + Transposable,
+    U: Clone + Transposable,
+    T: Clone + Transposable + Mul<U> + Mul<Ket<U, Y>, Output = Ket<V, Y>>,
+{
+    type Output = Bra<Ket<V, { N * Y }>, X>;
+
+    fn tensor_mul(self, rhs: Bra<Ket<U, Y>, X>) -> Self::Output {
+        rhs.map(|rhs_ket| self.clone().tensor_mul(rhs_ket))
+    }
+}
+
+impl<V, U, T, const N: usize, const M: usize, const X: usize, const Y: usize>
+    TensorMul<Bra<Ket<U, Y>, X>> for Bra<Ket<T, M>, N>
+where
+    <T as Mul<U>>::Output: Clone + Transposable,
+    <T as Mul<Ket<U, Y>>>::Output: Clone + Transposable,
+    [(); M * Y]:,
+    [(); N * X]:,
+    V: Clone + Transposable,
+    U: Clone + Transposable,
+    T: Clone + Transposable + Mul<U> + Mul<Ket<U, Y>, Output = Ket<V, Y>>,
+{
+    type Output = Bra<Ket<V, { M * Y }>, { N * X }>;
+
+    fn tensor_mul(self, rhs: Bra<Ket<U, Y>, X>) -> Self::Output {
+        Bra(flatten_arrays(
+            self.0.map(|ket| (ket.tensor_mul(rhs.clone())).0),
+        ))
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -207,8 +244,17 @@ mod tests {
 
     #[test]
     fn test_tensors_mul() {
-        let t = Bra([Ket([1.0, 0.0]), Ket([0.0, 1.0])]);
+        let a = Bra([Ket([1.0, 0.0]), Ket([0.0, 1.0])]);
+        let b = Bra([Ket([1.0, 0.0]), Ket([0.0, 1.0])]);
 
-        assert_eq!(t.tensor_mul(t), Ket([3.0, 4.0, 6.0, 8.0]));
+        assert_eq!(
+            a.tensor_mul(b),
+            Bra([
+                Ket([1.0, 0.0, 0.0, 0.0]),
+                Ket([0.0, 1.0, 0.0, 0.0]),
+                Ket([0.0, 0.0, 1.0, 0.0]),
+                Ket([0.0, 0.0, 0.0, 1.0]),
+            ])
+        );
     }
 }
