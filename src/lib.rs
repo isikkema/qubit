@@ -8,3 +8,5 @@ pub mod qubit;
 pub mod tensor;
 pub mod transposable;
 pub mod outer_mul;
+pub mod tensor_mul;
+pub mod matrix;

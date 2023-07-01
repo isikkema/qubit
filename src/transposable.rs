@@ -37,6 +37,8 @@ where
     type Output = Tensor<Tensor<<T as Transposable>::Output, M, 1>, N, 2>;
 
     fn T(&self) -> Self::Output {
+        // [(); N].map() is the only way I know of to initialize [T; N] if T doesn't impl Default
+        
         let mut outer_idx = 0;
 
         Tensor([(); N].map(|_| {

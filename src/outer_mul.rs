@@ -61,6 +61,25 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
+    
+    #[test]
+    fn test_r2_basis_r2_basis() {
+        let r2: Tensor<Tensor<f64, 2, 1>, 2, 2> = Tensor([
+            Tensor([1.0, 0.0]),
+            Tensor([0.0, 1.0]),
+        ]);
+
+        let r4: Tensor<Tensor<f64, 4, 1>, 4, 2> = Tensor([
+            Tensor([1.0, 0.0, 0.0, 0.0]),
+            Tensor([0.0, 1.0, 0.0, 0.0]),
+            Tensor([0.0, 0.0, 1.0, 0.0]),
+            Tensor([0.0, 0.0, 0.0, 1.0]),
+        ]);
+
+        println!("{:?}", r2.clone().outer_mul(r2));
+
+        assert!(false);
+    }
 
     #[test]
     fn test_f64_f64() {
