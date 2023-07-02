@@ -2,9 +2,10 @@
 
 pub mod basis;
 pub mod braket;
-pub mod entangled_pair;
+pub mod qubit_system;
 pub mod filter;
 pub mod qubit;
 pub mod transposable;
 pub mod tensor_mul;
 mod util;
+pub mod qgates;

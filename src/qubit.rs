@@ -1,3 +1,5 @@
+use std::f64::consts::FRAC_1_SQRT_2;
+
 use crate::braket::Ket;
 use crate::{basis::Basis, transposable::Transposable};
 
@@ -5,12 +7,30 @@ use rand::{thread_rng, Rng};
 
 #[derive(Debug)]
 pub struct Qubit {
-    state: Ket<f64, 2>,
+    pub(crate) state: Ket<f64, 2>,
 }
 
 impl Qubit {
     pub fn new(a: f64, b: f64) -> Self {
         Qubit { state: Ket([a, b]) }
+    }
+
+    pub fn zero() -> Self {
+        Qubit {
+            state: Ket([1.0, 0.0]),
+        }
+    }
+
+    pub fn one() -> Self {
+        Qubit {
+            state: Ket([0.0, 1.0]),
+        }
+    }
+
+    pub fn deg45() -> Self {
+        Qubit {
+            state: Ket([FRAC_1_SQRT_2, FRAC_1_SQRT_2]),
+        }
     }
 
     pub fn random() -> Self {
