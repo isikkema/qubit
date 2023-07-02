@@ -139,17 +139,28 @@ impl<T: Clone + Transposable, const N: usize> Transposable for Ket<T, N> {
     }
 }
 
-impl<U: Clone + Transposable, T: Clone + Transposable + Mul<U>, const N: usize, const M: usize>
-    Mul<Ket<U, M>> for Ket<Bra<T, M>, N>
+impl<U: Clone + Transposable, T: Clone + Transposable + Mul<U>, const N: usize> Mul<U> for Ket<T, N>
 where
     <T as Mul<U>>::Output: Clone + Transposable + Sum,
 {
-    type Output = Ket<<Bra<T, M> as Mul<Ket<U, M>>>::Output, N>;
+    type Output = Ket<<T as Mul<U>>::Output, N>;
 
-    fn mul(self, rhs: Ket<U, M>) -> Self::Output {
+    fn mul(self, rhs: U) -> Self::Output {
         Ket(self.0.map(|bra| bra * rhs.clone()))
     }
 }
+
+// impl<U: Clone + Transposable, T: Clone + Transposable + Mul<U>, const N: usize, const M: usize>
+//     Mul<Ket<U, M>> for Ket<Bra<T, M>, N>
+// where
+//     <T as Mul<U>>::Output: Clone + Transposable + Sum,
+// {
+//     type Output = Ket<<Bra<T, M> as Mul<Ket<U, M>>>::Output, N>;
+
+//     fn mul(self, rhs: Ket<U, M>) -> Self::Output {
+//         Ket(self.0.map(|bra| bra * rhs.clone()))
+//     }
+// }
 
 impl<U: Clone + Transposable, const N: usize> Mul<Ket<U, N>> for f64
 where
@@ -174,6 +185,16 @@ where
         let mut rhs_it = rhs.0.into_iter();
 
         Ket(self.0.map(|it| it + rhs_it.next().unwrap()))
+    }
+}
+
+impl<T, const N: usize> Sum for Ket<T, N>
+where
+    T: Clone + Transposable + Add<Output = T>,
+    <T as Add>::Output: Clone + Transposable,
+{
+    fn sum<I: Iterator<Item = Self>>(iter: I) -> Self {
+        iter.reduce(|acc, e| acc + e).unwrap()
     }
 }
 
