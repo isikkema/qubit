@@ -49,15 +49,15 @@ impl Qubit {
         &self.state
     }
 
-    pub fn get_probability_amplitudes(&self, basis: Basis) -> Ket<f64, 2> {
+    pub fn get_probability_amplitudes(&self, basis: Basis<2>) -> Ket<f64, 2> {
         basis.into_bra().T() * self.state.clone()
     }
 
-    pub fn get_probabilities(&self, basis: Basis) -> Ket<f64, 2> {
+    pub fn get_probabilities(&self, basis: Basis<2>) -> Ket<f64, 2> {
         self.get_probability_amplitudes(basis).map(|n| n.powi(2))
     }
 
-    pub fn measure(&mut self, basis: Basis) -> bool {
+    pub fn measure(&mut self, basis: Basis<2>) -> bool {
         let [off_state, on_state] = basis.as_bra().as_array().clone();
 
         let &[off_p, on_p] = self.get_probabilities(basis).as_array();

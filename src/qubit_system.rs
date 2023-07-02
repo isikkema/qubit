@@ -1,4 +1,4 @@
-use crate::{braket::Ket, qubit::Qubit, tensor_mul::TensorMul};
+use crate::{braket::Ket, qubit::Qubit, tensor_mul::TensorMul, basis::Basis};
 
 #[derive(Debug)]
 pub struct QubitSystem<const N: usize> {
@@ -13,6 +13,10 @@ impl<const N: usize> QubitSystem<N> {
     }
 
     pub fn is_entangled(&self) -> bool {
+        todo!()
+    }
+
+    pub fn measure(&mut self, basis: Basis<N>) -> Ket<f64, N> {
         todo!()
     }
 

@@ -1,14 +1,14 @@
 use crate::{basis::Basis, qubit::Qubit};
 
 pub struct Filter {
-    basis: Basis,
+    basis: Basis<2>,
     allow: bool,
     pub num_passed: u64,
     pub num_total: u64,
 }
 
 impl Filter {
-    pub fn new(basis: Basis, allow: bool) -> Self {
+    pub fn new(basis: Basis<2>, allow: bool) -> Self {
         Filter {
             basis,
             allow,
