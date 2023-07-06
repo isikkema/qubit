@@ -2,8 +2,8 @@
 
 use std::{env, num::ParseIntError};
 
-use qubit::{qgates, qubit::Qubit, qubit_system::QubitSystem, basis::Basis};
-use rand::{distributions::Standard, prelude::Distribution, random, thread_rng, Rng};
+use qubit::{basis::DEG_0, qgates, qubit::Qubit, qubit_system::QubitSystem};
+use rand::{distributions::Standard, prelude::Distribution, thread_rng};
 
 #[derive(Debug)]
 enum MeasureDirection {
@@ -40,16 +40,21 @@ fn main() -> Result<(), ParseIntError> {
 
     println!("{qbs:?}");
 
-    let md: MeasureDirection = rng.gen();
+    let (qbs, qb) = qbs.measure(1, DEG_0);
 
-    println!("{md:?}");
+    println!("{qb:?}");
+    println!("{qbs:?}");
+
+    // let md: MeasureDirection = rng.gen();
+
+    // println!("{md:?}");
 
     // We need to measure one at a time
-    let measure_basis = match md {
-        MeasureDirection::Deg0 => todo!(),
-        MeasureDirection::Deg120 => todo!(),
-        MeasureDirection::Deg240 => todo!(),
-    };
+    // let measure_basis = match md {
+    //     MeasureDirection::Deg0 => todo!(),
+    //     MeasureDirection::Deg120 => todo!(),
+    //     MeasureDirection::Deg240 => todo!(),
+    // };
 
     Ok(())
 }
