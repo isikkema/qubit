@@ -9,3 +9,4 @@ pub mod transposable;
 pub mod tensor_mul;
 mod util;
 pub mod qgates;
+pub mod kronecker;
