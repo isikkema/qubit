@@ -9,7 +9,7 @@ pub const DEG_45: Basis<2> = Basis(Bra([
 ]));
 pub const DEG_90: Basis<2> = Basis(Bra([Ket([0.0, 1.0]), Ket([1.0, 0.0])]));
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct Basis<const N: usize>(Bra<Ket<f64, N>, N>);
 
 impl<const N: usize> Basis<N> {

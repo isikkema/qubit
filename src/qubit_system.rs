@@ -47,22 +47,26 @@ impl<const N: usize> QubitSystem<N> {
         Ket([p_zero / magnitude, p_one / magnitude])
     }
 
-    pub fn get_probability_amplitudes(&self, qubit: u32, basis: Basis<2>) -> Ket<f64, 2> {
-        basis.into_bra().T() * self.sum_abs_probability_amplitudes(qubit)
+    pub fn get_probability_amplitudes(&self, qubit: u32, basis: &Basis<2>) -> Ket<f64, 2> {
+        basis.as_bra().T() * self.sum_abs_probability_amplitudes(qubit)
     }
 
-    pub fn get_probabilities(&self, qubit: u32, basis: Basis<2>) -> Ket<f64, 2> {
+    pub fn get_probabilities(&self, qubit: u32, basis: &Basis<2>) -> Ket<f64, 2> {
         self.get_probability_amplitudes(qubit, basis)
             .map(|amp| amp.powi(2))
     }
 
-    /*
-    Measure only 1 qubit at a time.
-    Sum up probabilities for 0 vs 1, choose, then collapse inner state in half.
-    Only elements where the qubit was {result} remain.
-    How to normalize amplitudes afterwards?
-     */
-    pub fn measure(self, qubit: u32, basis: Basis<2>) -> (QubitSystem<{ N / 2 }>, Ket<f64, 2>) {
+    pub(crate) fn from_ket(ket: Ket<f64, N>) -> Self {
+        QubitSystem { state: ket }
+    }
+
+    pub(crate) fn from_array(array: [f64; N]) -> Self {
+        QubitSystem { state: Ket(array) }
+    }
+}
+
+impl QubitSystem<4> {
+    pub fn measure(self, qubit: u32, basis: &Basis<2>) -> (QubitSystem<{ 4 / 2 }>, Qubit) {
         let [off_state, on_state] = basis.as_bra().as_array().clone();
 
         let &[off_p, on_p] = self.get_probabilities(qubit, basis).as_array();
@@ -72,16 +76,19 @@ impl<const N: usize> QubitSystem<N> {
         let is_on = thread_rng().gen_bool(on_p);
 
         let new_qubit_state = if is_on { on_state } else { off_state };
+        let new_qubit = Qubit {
+            state: new_qubit_state,
+        };
 
         let step = 2usize.pow(qubit);
         let offset = if is_on {
-            2usize.pow(N.trailing_zeros() - qubit - 1)
+            2usize.pow(4usize.trailing_zeros() - qubit - 1)
         } else {
             0
         };
 
         let mut i = 0;
-        let unnormalized_system_state = [(); N / 2].map(|_| {
+        let unnormalized_system_state = [(); 4 / 2].map(|_| {
             let rv = self.state.0[i + offset];
             i += step;
             rv
@@ -96,21 +103,13 @@ impl<const N: usize> QubitSystem<N> {
 
         println!("mag: {magnitude}");
 
-        let normalized_system_state = unnormalized_system_state.map(|amp| amp / magnitude);
+        let normalized_system_state = Ket(unnormalized_system_state.map(|amp| amp / magnitude));
 
         println!("ns: {normalized_system_state:?}");
 
-        let new_qubit_system = QubitSystem::from_array(normalized_system_state);
+        let new_qubit_system = QubitSystem::from_ket(basis.as_bra().T() * normalized_system_state);
 
-        (new_qubit_system, new_qubit_state)
-    }
-
-    pub(crate) fn from_ket(ket: Ket<f64, N>) -> Self {
-        QubitSystem { state: ket }
-    }
-
-    pub(crate) fn from_array(array: [f64; N]) -> Self {
-        QubitSystem { state: Ket(array) }
+        (new_qubit_system, new_qubit)
     }
 }
 

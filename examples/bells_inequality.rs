@@ -1,9 +1,14 @@
 #![feature(generic_const_exprs)]
 
-use std::{env, num::ParseIntError};
+use std::{env, f64::consts::FRAC_PI_3, num::ParseIntError};
 
-use qubit::{basis::DEG_0, qgates, qubit::Qubit, qubit_system::QubitSystem};
-use rand::{distributions::Standard, prelude::Distribution, thread_rng};
+use qubit::{
+    basis::{Basis, DEG_0},
+    qgates,
+    qubit::Qubit,
+    qubit_system::QubitSystem,
+};
+use rand::{distributions::Standard, prelude::Distribution, thread_rng, Rng};
 
 #[derive(Debug)]
 enum MeasureDirection {
@@ -40,20 +45,46 @@ fn main() -> Result<(), ParseIntError> {
 
     println!("{qbs:?}");
 
-    let (qbs, qb) = qbs.measure(1, DEG_0);
+    let (qbs, alice_on) = {
+        let md: MeasureDirection = rng.gen();
 
-    println!("{qb:?}");
-    println!("{qbs:?}");
+        println!("{md:?}");
 
-    // let md: MeasureDirection = rng.gen();
+        let measure_basis = match md {
+            MeasureDirection::Deg0 => DEG_0,
+            MeasureDirection::Deg120 => Basis::from_radians(2.0 * FRAC_PI_3),
+            MeasureDirection::Deg240 => Basis::from_radians(4.0 * FRAC_PI_3),
+        };
 
-    // println!("{md:?}");
+        println!("{measure_basis:?}");
 
-    // We need to measure one at a time
-    // let measure_basis = match md {
-    //     MeasureDirection::Deg0 => todo!(),
-    //     MeasureDirection::Deg120 => todo!(),
-    //     MeasureDirection::Deg240 => todo!(),
+        let (qbs, mut qb) = qbs.measure(0, &measure_basis);
+
+        println!("{qb:?}");
+        println!("{qbs:?}");
+
+        (qbs, qb.measure(&measure_basis))
+    };
+
+    // let (qbs, bob_on) = {
+    //     let md: MeasureDirection = rng.gen();
+
+    //     println!("{md:?}");
+
+    //     let measure_basis = match md {
+    //         MeasureDirection::Deg0 => DEG_0,
+    //         MeasureDirection::Deg120 => Basis::from_radians(2.0 * FRAC_PI_3),
+    //         MeasureDirection::Deg240 => Basis::from_radians(4.0 * FRAC_PI_3),
+    //     };
+
+    //     println!("{measure_basis:?}");
+
+    //     let (qbs, mut qb) = qbs.measure(0, &measure_basis);
+
+    //     println!("{qb:?}");
+    //     println!("{qbs:?}");
+
+    //     (qbs, qb.measure(&measure_basis))
     // };
 
     Ok(())

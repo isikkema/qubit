@@ -20,7 +20,7 @@ impl Filter {
     pub fn filter(&mut self, mut qb: Qubit) -> Option<Qubit> {
         self.num_total += 1;
 
-        if qb.measure(self.basis.clone()) == self.allow {
+        if qb.measure(&self.basis) == self.allow {
             self.num_passed += 1;
 
             Some(qb)
