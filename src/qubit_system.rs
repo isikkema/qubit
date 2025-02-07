@@ -1,7 +1,14 @@
+use std::mem;
+
 use rand::{thread_rng, Rng};
 
 use crate::{
-    basis::Basis, braket::Ket, qubit::Qubit, tensor_mul::TensorMul, transposable::Transposable,
+    basis::Basis,
+    braket::{Bra, Ket},
+    kronecker::Kronecker,
+    qubit::Qubit,
+    tensor_mul::TensorMul,
+    transposable::Transposable,
 };
 
 #[derive(Debug)]
@@ -20,7 +27,7 @@ impl<const N: usize> QubitSystem<N> {
         todo!()
     }
 
-    pub fn sum_abs_probability_amplitudes(&self, qubit: u32) -> Ket<f64, 2> {
+    pub fn sum_abs_probability_amplitudes(&self, qubit: u32) -> Ket<f64, N> {
         // Cute
         // log_2(N) = N.trailing_zeros()
 
@@ -35,8 +42,8 @@ impl<const N: usize> QubitSystem<N> {
         let mut p_one = 0.0;
 
         // I am simply having too much fun
-        let step = 2usize.pow(qubit);
-        let offset = 2usize.pow(N.trailing_zeros() - qubit - 1);
+        let step = 1 << qubit;
+        let offset = 1 << (N.trailing_zeros() - qubit - 1);
 
         for i in (0..(N - offset)).step_by(step) {
             p_zero += self.state.0[i].abs();
@@ -47,11 +54,11 @@ impl<const N: usize> QubitSystem<N> {
         Ket([p_zero / magnitude, p_one / magnitude])
     }
 
-    pub fn get_probability_amplitudes(&self, qubit: u32, basis: &Basis<2>) -> Ket<f64, 2> {
-        basis.as_bra().T() * self.sum_abs_probability_amplitudes(qubit)
+    pub fn get_probability_amplitudes(&self, qubit: u32, basis: &Basis<N>) -> Ket<f64, N> {
+        basis.as_bra().T() * self.state.clone()
     }
 
-    pub fn get_probabilities(&self, qubit: u32, basis: &Basis<2>) -> Ket<f64, 2> {
+    pub fn get_probabilities(&self, qubit: u32, basis: &Basis<N>) -> Ket<f64, N> {
         self.get_probability_amplitudes(qubit, basis)
             .map(|amp| amp.powi(2))
     }
@@ -63,10 +70,8 @@ impl<const N: usize> QubitSystem<N> {
     pub(crate) fn from_array(array: [f64; N]) -> Self {
         QubitSystem { state: Ket(array) }
     }
-}
 
-impl QubitSystem<4> {
-    pub fn measure(self, qubit: u32, basis: &Basis<2>) -> (QubitSystem<{ 4 / 2 }>, Qubit) {
+    pub fn measure(self, qubit: u32, basis: &Basis<N>) -> (QubitSystem<{ N >> 1 }>, Qubit) {
         let [off_state, on_state] = basis.as_bra().as_array().clone();
 
         let &[off_p, on_p] = self.get_probabilities(qubit, basis).as_array();
@@ -88,7 +93,7 @@ impl QubitSystem<4> {
         };
 
         let mut i = 0;
-        let unnormalized_system_state = [(); 4 / 2].map(|_| {
+        let unnormalized_system_state = [(); N >> 1].map(|_| {
             let rv = self.state.0[i + offset];
             i += step;
             rv

@@ -1,6 +1,9 @@
-use std::f64::consts::FRAC_1_SQRT_2;
+use std::{f64::consts::FRAC_1_SQRT_2, mem};
 
-use crate::braket::{Bra, Ket};
+use crate::{
+    braket::{Bra, Ket},
+    kronecker::Kronecker,
+};
 
 pub const DEG_0: Basis<2> = Basis(Bra([Ket([1.0, 0.0]), Ket([0.0, 1.0])]));
 pub const DEG_45: Basis<2> = Basis(Bra([
@@ -33,4 +36,37 @@ impl Basis<2> {
             Ket([radians.sin(), radians.cos()]),
         ]))
     }
+
+    // pub fn scale_to_n<const N: usize, const M: usize, const P: usize, const Q: usize>(&self, index: u32) -> Basis<N>
+    // where
+    //     [(); N >> 1]:,
+    //     [(); N * P]:,
+    //     [(); M * Q]:,
+    // {
+    //     if N == 2 {
+    //         let scaled_basis = if index == 0 {
+    //             self.clone()
+    //         } else {
+    //             Basis(Bra([Ket([1.0, 0.0]), Ket([0.0, 1.0])]))
+    //         };
+
+    //         return unsafe { *(&scaled_basis as *const Basis<2> as *const Basis<N>) };
+    //     }
+
+    //     let num_qubits = N.trailing_zeros();
+
+    //     let scaling_factor = if index == num_qubits {
+    //         self.as_bra().clone()
+    //     } else {
+    //         Bra([Ket([1.0, 0.0]), Ket([0.0, 1.0])])
+    //     };
+
+    //     let scaled_basis = Basis(
+    //         self.scale_to_n::<{ N >> 1 }>(index)
+    //             .as_bra()
+    //             .kron(&scaling_factor),
+    //     );
+
+    //     unsafe { *(&scaled_basis as *const Basis<N>) }
+    // }
 }

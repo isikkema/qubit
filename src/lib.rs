@@ -1,12 +1,13 @@
 #![feature(generic_const_exprs)]
+#![feature(generic_arg_infer)]
 
 pub mod basis;
 pub mod braket;
-pub mod qubit_system;
 pub mod filter;
-pub mod qubit;
-pub mod transposable;
-pub mod tensor_mul;
-mod util;
-pub mod qgates;
 pub mod kronecker;
+pub mod qgates;
+pub mod qubit;
+pub mod qubit_system;
+pub mod tensor_mul;
+pub mod transposable;
+mod util;

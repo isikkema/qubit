@@ -36,6 +36,9 @@ impl Qubit {
     pub fn random() -> Self {
         let mut rng = thread_rng();
 
+        // TODO: This is biased towards 45/135/225/315 ish degrees
+        // A non-biased, but slower, solution would be to gen_range(0.0..2PI)
+        // and work backwards from there
         let a: f64 = rng.gen_range(-1.0..=1.0);
         let b: f64 = rng.gen_range(-1.0..=1.0);
         let c = (a * a + b * b).sqrt();
