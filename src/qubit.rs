@@ -1,4 +1,4 @@
-use rand::{thread_rng, Rng};
+use rand::{RngExt, rng};
 
 use crate::{basis::Basis, tensor::Tensor, transposable::Transposable};
 
@@ -15,10 +15,10 @@ impl Qubit {
     }
 
     pub fn random() -> Self {
-        let mut rng = thread_rng();
+        let mut rng = rng();
 
-        let a: f64 = rng.gen_range(-1.0..=1.0);
-        let b: f64 = rng.gen_range(-1.0..=1.0);
+        let a: f64 = rng.random_range(-1.0..=1.0);
+        let b: f64 = rng.random_range(-1.0..=1.0);
         let c = (a * a + b * b).sqrt();
 
         Qubit {
@@ -45,7 +45,7 @@ impl Qubit {
 
         debug_assert!((1.0 - (off_p + on_p)).abs() < 0.0001);
 
-        let is_on = thread_rng().gen_bool(on_p);
+        let is_on = rng().random_bool(on_p);
 
         self.state = if is_on { on_state } else { off_state };
 
