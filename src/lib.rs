@@ -4,6 +4,7 @@
 
 pub mod basis;
 pub mod filter;
+pub mod outer_mul;
 pub mod qubit;
 pub mod system;
 pub mod tensor;

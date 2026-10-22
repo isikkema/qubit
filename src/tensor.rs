@@ -12,7 +12,6 @@ impl<T, const N: usize> Tensor<T, N> {
         &self.0
     }
 
-    // This O may not be correct
     pub fn map<F, U>(self, f: F) -> Tensor<U, N>
     where
         F: FnMut(T) -> U,
@@ -62,8 +61,7 @@ impl<T, const N: usize> Index<usize> for Tensor<T, N> {
     }
 }
 
-impl<T, U, const N: usize> Add<Tensor<U, N>>
-    for Tensor<T, N>
+impl<T, U, const N: usize> Add<Tensor<U, N>> for Tensor<T, N>
 where
     T: Add<U>,
 {
@@ -85,8 +83,7 @@ where
     }
 }
 
-impl<T, U, const N: usize> Mul<Tensor<U, N>>
-    for Tensor<T, N>
+impl<T, U, const N: usize> Mul<Tensor<U, N>> for Tensor<T, N>
 where
     T: Clone + Mul<U>,
     <T as Mul<U>>::Output: Sum,
