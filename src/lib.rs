@@ -5,5 +5,6 @@
 pub mod basis;
 pub mod filter;
 pub mod qubit;
+pub mod system;
 pub mod tensor;
 pub mod transposable;

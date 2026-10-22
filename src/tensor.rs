@@ -21,7 +21,15 @@ impl<T, const N: usize> Tensor<T, N> {
     }
 }
 
-impl<T, const N: usize, const O: usize> Default for Tensor<T, N, O>
+impl<const N: usize> Tensor<f64, N> {
+    pub fn tensor_product(&self, rhs: &Self) -> Tensor<f64, { N * N }> {
+        let mut iter = self.0.iter().flat_map(|n| *n * rhs.clone());
+
+        Tensor(array::from_fn(|_| iter.next().unwrap()))
+    }
+}
+
+impl<T, const N: usize> Default for Tensor<T, N>
 where
     T: Default,
 {
@@ -30,7 +38,32 @@ where
     }
 }
 
-impl<T, U, const N: usize, const O: usize> Add<Tensor<U, N, O>> for Tensor<T, N, O>
+impl<T, const N: usize> IntoIterator for Tensor<T, N> {
+    type Item = T;
+
+    type IntoIter = array::IntoIter<T, N>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.into_iter()
+    }
+}
+
+impl<T, const N: usize> IndexMut<usize> for Tensor<T, N> {
+    fn index_mut(&mut self, index: usize) -> &mut Self::Output {
+        self.0.index_mut(index)
+    }
+}
+
+impl<T, const N: usize> Index<usize> for Tensor<T, N> {
+    type Output = T;
+
+    fn index(&self, index: usize) -> &Self::Output {
+        self.0.index(index)
+    }
+}
+
+impl<T, U, const N: usize> Add<Tensor<U, N>>
+    for Tensor<T, N>
 where
     T: Add<U>,
 {
