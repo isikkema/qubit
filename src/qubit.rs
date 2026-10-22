@@ -4,7 +4,7 @@ use crate::{basis::Basis, tensor::Tensor, transposable::Transposable};
 
 #[derive(Debug)]
 pub struct Qubit {
-    state: Tensor<f64, 2, 1>,
+    state: Tensor<f64, 2>,
 }
 
 impl Qubit {
@@ -26,19 +26,19 @@ impl Qubit {
         }
     }
 
-    pub fn get_state(&self) -> &Tensor<f64, 2, 1> {
+    pub fn get_state(&self) -> &Tensor<f64, 2> {
         &self.state
     }
 
-    pub fn get_probability_amplitudes(&self, basis: Basis) -> Tensor<f64, 2, 1> {
+    pub fn get_probability_amplitudes(&self, basis: &Basis) -> Tensor<f64, 2> {
         basis.as_tensor().T() * self.state.clone()
     }
 
-    pub fn get_probabilities(&self, basis: Basis) -> Tensor<f64, 2, 1> {
+    pub fn get_probabilities(&self, basis: &Basis) -> Tensor<f64, 2> {
         self.get_probability_amplitudes(basis).map(|n| n.powi(2))
     }
 
-    pub fn measure(&mut self, basis: Basis) -> bool {
+    pub fn measure(&mut self, basis: &Basis) -> bool {
         let [off_state, on_state] = basis.as_tensor().as_array().clone();
 
         let &[off_p, on_p] = self.get_probabilities(basis).as_array();
