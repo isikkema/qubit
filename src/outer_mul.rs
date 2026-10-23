@@ -91,4 +91,13 @@ mod tests {
 
         assert_eq!(expected, actual);
     }
+
+    #[test]
+    fn test_0_outer_mul_0() {
+        let actual = Tensor::<f64, _>([]).outer_mul(&Tensor::<f64, _>([]));
+
+        let expected = Tensor([]);
+
+        assert_eq!(expected, actual);
+    }
 }

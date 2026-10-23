@@ -4,6 +4,7 @@
 
 pub mod basis;
 pub mod filter;
+pub mod inner_mul;
 pub mod outer_mul;
 pub mod qubit;
 pub mod system;
