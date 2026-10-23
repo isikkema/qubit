@@ -13,9 +13,9 @@ impl System {
         }
     }
 
-    pub fn measure(&mut self, qubit_idx: u8, basis: &Basis) -> Result<bool, ()> {
+    pub fn measure(&mut self, qubit_idx: u8, basis: &Basis) -> Option<bool> {
         if qubit_idx > 1 {
-            return Err(());
+            return None;
         }
 
         let full_basis = Tensor([
@@ -70,9 +70,9 @@ impl System {
 
                 is_on
             }
-            _ => unreachable!(),
+            _ => return None,
         };
 
-        Ok(is_on)
+        Some(is_on)
     }
 }
