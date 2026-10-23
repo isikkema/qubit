@@ -1,2 +1,3 @@
 [build]
 rustflags = ["-Znext-solver=coherence"]
+rustdocflags = ["-Znext-solver=coherence"]
