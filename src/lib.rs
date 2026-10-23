@@ -3,6 +3,7 @@
 #![feature(more_float_constants)]
 
 pub mod basis;
+pub mod dot;
 pub mod filter;
 pub mod inner_mul;
 pub mod outer_mul;
