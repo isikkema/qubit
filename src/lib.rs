@@ -10,4 +10,5 @@ pub mod outer_mul;
 pub mod qubit;
 pub mod system;
 pub mod tensor;
+pub mod tensor_mul;
 pub mod transposable;
