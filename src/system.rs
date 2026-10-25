@@ -1,6 +1,8 @@
 use rand::{RngExt, rng};
 
-use crate::{basis::Basis, tensor::Tensor, transposable::Transposable};
+use crate::{
+    basis::Basis, dot::Dot, tensor::Tensor, tensor_mul::TensorMul, transposable::Transposable,
+};
 
 pub struct System {
     state: Tensor<f64, 4>,
@@ -19,13 +21,13 @@ impl System {
         }
 
         let full_basis = Tensor([
-            basis.as_tensor()[0].tensor_product(&basis.as_tensor()[0]),
-            basis.as_tensor()[0].tensor_product(&basis.as_tensor()[1]),
-            basis.as_tensor()[1].tensor_product(&basis.as_tensor()[0]),
-            basis.as_tensor()[1].tensor_product(&basis.as_tensor()[1]),
+            basis.as_tensor()[0].tensor_mul(&basis.as_tensor()[0]),
+            basis.as_tensor()[0].tensor_mul(&basis.as_tensor()[1]),
+            basis.as_tensor()[1].tensor_mul(&basis.as_tensor()[0]),
+            basis.as_tensor()[1].tensor_mul(&basis.as_tensor()[1]),
         ]);
 
-        self.state = full_basis.T() * self.state.clone();
+        self.state = full_basis.T().dot(&self.state);
 
         let is_on = match qubit_idx {
             0 => {

@@ -1,6 +1,6 @@
 use rand::{RngExt, rng};
 
-use crate::{basis::Basis, tensor::Tensor, transposable::Transposable};
+use crate::{basis::Basis, dot::Dot, tensor::Tensor, transposable::Transposable};
 
 #[derive(Debug)]
 pub struct Qubit {
@@ -31,7 +31,7 @@ impl Qubit {
     }
 
     pub fn get_probability_amplitudes(&self, basis: &Basis) -> Tensor<f64, 2> {
-        basis.as_tensor().T() * self.state.clone()
+        basis.as_tensor().T().dot(&self.state)
     }
 
     pub fn get_probabilities(&self, basis: &Basis) -> Tensor<f64, 2> {
@@ -39,7 +39,7 @@ impl Qubit {
     }
 
     pub fn measure(&mut self, basis: &Basis) -> bool {
-        let [off_state, on_state] = basis.as_tensor().as_array().clone();
+        let [off_state, on_state] = basis.as_tensor().as_array();
 
         let &[off_p, on_p] = self.get_probabilities(basis).as_array();
 
@@ -47,7 +47,11 @@ impl Qubit {
 
         let is_on = rng().random_bool(on_p);
 
-        self.state = if is_on { on_state } else { off_state };
+        self.state = if is_on {
+            on_state.clone()
+        } else {
+            off_state.clone()
+        };
 
         is_on
     }
