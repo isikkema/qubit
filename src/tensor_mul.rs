@@ -1,3 +1,5 @@
+use std::gca;
+
 use crate::tensor::Tensor;
 
 pub trait TensorMul<Rhs> {
@@ -14,12 +16,13 @@ impl TensorMul<f64> for f64 {
     }
 }
 
+const LEN<const N: usize, const M: usize>: usize = const { N * M };
+
 impl<T, U, const N: usize, const M: usize> TensorMul<Tensor<U, M>> for Tensor<T, N>
 where
     T: TensorMul<U>,
-    [(); N * M]:,
 {
-    type Output = Tensor<<T as TensorMul<U>>::Output, { N * M }>;
+    type Output = Tensor<<T as TensorMul<U>>::Output, gca!(LEN::<N, M>)>;
 
     fn tensor_mul(&self, rhs: &Tensor<U, M>) -> Self::Output {
         Tensor(std::array::from_fn(|idx| {

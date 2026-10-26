@@ -1,6 +1,8 @@
 #![allow(incomplete_features)]
-#![feature(generic_const_exprs)]
 #![feature(more_float_constants)]
+#![feature(generic_const_items)]
+#![feature(gca_min_const_items)]
+#![feature(gca_const_items)]
 
 pub mod basis;
 pub mod dot;

@@ -1,33 +1,30 @@
+use std::gca;
+
 use rand::{RngExt, rng};
 
-use crate::{
-    basis::Basis, dot::Dot, tensor::Tensor, tensor_mul::TensorMul, transposable::Transposable,
-};
+use crate::{dot::Dot, tensor::Tensor, transposable::Transposable};
 
-pub struct System {
-    state: Tensor<f64, 4>,
+const DIM<const Q: u8>: usize = const { 1 << Q };
+
+pub struct System<const Q: u8> {
+    state: Tensor<f64, gca!(DIM::<Q>)>,
 }
 
-impl System {
-    pub fn new(r: f64, s: f64, t: f64, u: f64) -> Self {
-        Self {
-            state: Tensor([r, s, t, u]),
-        }
+impl<const Q: u8> System<Q> {
+    pub fn new(state: Tensor<f64, gca!(DIM::<Q>)>) -> Self {
+        Self { state }
     }
 
-    pub fn measure(&mut self, qubit_idx: u8, basis: &Basis) -> Option<bool> {
+    pub fn measure(
+        &mut self,
+        qubit_idx: u8,
+        basis: &Tensor<Tensor<f64, gca!(DIM::<Q>)>, gca!(DIM::<Q>)>,
+    ) -> Option<bool> {
         if qubit_idx > 1 {
             return None;
         }
 
-        let full_basis = Tensor([
-            basis.as_tensor()[0].tensor_mul(&basis.as_tensor()[0]),
-            basis.as_tensor()[0].tensor_mul(&basis.as_tensor()[1]),
-            basis.as_tensor()[1].tensor_mul(&basis.as_tensor()[0]),
-            basis.as_tensor()[1].tensor_mul(&basis.as_tensor()[1]),
-        ]);
-
-        self.state = full_basis.T().dot(&self.state);
+        self.state = basis.T().dot(&self.state);
 
         let is_on = match qubit_idx {
             0 => {
