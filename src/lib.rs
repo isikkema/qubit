@@ -10,6 +10,7 @@ pub mod filter;
 pub mod inner_mul;
 pub mod outer_mul;
 pub mod qubit;
+pub mod random_bool;
 pub mod system;
 pub mod tensor;
 pub mod tensor_mul;

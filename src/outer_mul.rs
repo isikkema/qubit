@@ -1,3 +1,5 @@
+use std::array;
+
 use crate::tensor::Tensor;
 
 pub trait OuterMul<Rhs = Self> {
@@ -21,7 +23,7 @@ where
     type Output = Tensor<<f64 as OuterMul<T>>::Output, N>;
 
     fn outer_mul(&self, rhs: &Tensor<T, N>) -> Self::Output {
-        Tensor(rhs.0.each_ref().map(|n| self.outer_mul(n)))
+        Tensor(array::from_fn(|idx| self.outer_mul(&rhs[idx])))
     }
 }
 

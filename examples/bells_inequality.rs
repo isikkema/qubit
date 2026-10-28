@@ -21,22 +21,27 @@ fn main() -> Result<(), ParseIntError> {
     let mut rng = rng();
     let mut agree_count: u32 = 0;
     for _ in 0..num_runs {
-        let mut pair = System::<2>::new(Tensor([FRAC_1_SQRT_2, 0.0, 0.0, FRAC_1_SQRT_2]));
+        let (system, mut ids) =
+            System::<2>::from_state(Tensor([FRAC_1_SQRT_2, 0.0, 0.0, FRAC_1_SQRT_2]));
 
-        let mut order = [0, 1];
-        order.shuffle(&mut rng);
+        ids.shuffle(&mut rng);
+
+        let id1 = ids.pop().unwrap();
+        let id2 = ids.pop().unwrap();
 
         let angle1 = measurement_angles.choose(&mut rng).unwrap();
         let angle2 = measurement_angles.choose(&mut rng).unwrap();
 
-        let a = pair
-            .measure(order[0], &angle1.as_tensor().tensor_mul(angle1.as_tensor()))
+        let (value1, system, _) = system
+            .measure(
+                id1,
+                &angle1.as_tensor().tensor_mul(angle1.as_tensor()),
+                &mut rng,
+            )
             .unwrap();
-        let b = pair
-            .measure(order[1], &angle2.as_tensor().tensor_mul(angle2.as_tensor()))
-            .unwrap();
+        let (value2, _, _) = system.measure(id2, &angle2.as_tensor(), &mut rng).unwrap();
 
-        if a == b {
+        if value1 == value2 {
             agree_count += 1;
         }
     }

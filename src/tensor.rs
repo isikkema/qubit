@@ -7,6 +7,14 @@ use std::{
 pub struct Tensor<T, const N: usize>(pub [T; N]);
 
 impl<T, const N: usize> Tensor<T, N> {
+    pub fn len(&self) -> usize {
+        self.0.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        N == 0
+    }
+
     pub fn as_array(&self) -> &[T; N] {
         &self.0
     }
@@ -50,4 +58,10 @@ impl<T, const N: usize> Index<usize> for Tensor<T, N> {
     fn index(&self, index: usize) -> &Self::Output {
         self.0.index(index)
     }
+}
+
+pub fn mostly_eq<const N: usize>(a: &Tensor<f64, N>, b: &Tensor<f64, N>) -> bool {
+    a.0.iter()
+        .zip(b.0.iter())
+        .all(|(a, b)| (a - b).abs() < 0.00001)
 }

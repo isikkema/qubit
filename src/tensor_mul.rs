@@ -16,7 +16,7 @@ impl TensorMul<f64> for f64 {
     }
 }
 
-const LEN<const N: usize, const M: usize>: usize = const { N * M };
+pub const LEN<const N: usize, const M: usize>: usize = const { N * M };
 
 impl<T, U, const N: usize, const M: usize> TensorMul<Tensor<U, M>> for Tensor<T, N>
 where
