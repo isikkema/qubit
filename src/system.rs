@@ -25,8 +25,8 @@ const R<const Q: u8>: u8 = const { Q - 1 };
 const P<const Q: u8>: u8 = const { Q + 1 };
 
 pub struct System<const Q: u8> {
-    pub state: Tensor<f64, gca!(DIM::<Q>)>,
-    id_map: HashMap<QubitId, usize>,
+    pub(crate) state: Tensor<f64, gca!(DIM::<Q>)>,
+    pub(crate) id_map: HashMap<QubitId, usize>,
 }
 
 impl System<0> {

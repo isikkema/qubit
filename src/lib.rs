@@ -7,6 +7,7 @@
 pub mod basis;
 pub mod dot;
 pub mod filter;
+pub mod gates;
 pub mod inner_mul;
 pub mod outer_mul;
 pub mod qubit;
