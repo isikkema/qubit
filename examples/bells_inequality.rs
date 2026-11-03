@@ -1,9 +1,10 @@
-use std::{env, f64::consts::FRAC_1_SQRT_2, num::ParseIntError};
+use std::{env, num::ParseIntError};
 
 use qubit::{
     basis::{DEG_0, DEG_120, DEG_240},
+    gates::{cnot, hadamard},
+    qubit::Qubit,
     system::System,
-    tensor::Tensor,
     tensor_mul::TensorMul,
 };
 use rand::{
@@ -21,9 +22,12 @@ fn main() -> Result<(), ParseIntError> {
     let mut rng = rng();
     let mut agree_count: u32 = 0;
     for _ in 0..num_runs {
-        let (system, mut ids) =
-            System::<2>::from_state(Tensor([FRAC_1_SQRT_2, 0.0, 0.0, FRAC_1_SQRT_2]));
+        let (system, id1) = System::from_qubit(Qubit::new(1.0, 0.0));
+        let system = hadamard(system);
+        let (id2, system) = system.insert(Qubit::new(1.0, 0.0));
+        let system = cnot(system);
 
+        let mut ids = vec![id1, id2];
         ids.shuffle(&mut rng);
 
         let id1 = ids.pop().unwrap();
