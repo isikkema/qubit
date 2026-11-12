@@ -2,7 +2,7 @@ use std::{env, num::ParseIntError};
 
 use qubit::{
     basis::{DEG_0, DEG_120, DEG_240},
-    gates::{cnot, hadamard},
+    gates::{CNOT, HADAMARD},
     qubit::Qubit,
     system::System,
     tensor_mul::TensorMul,
@@ -22,10 +22,10 @@ fn main() -> Result<(), ParseIntError> {
     let mut rng = rng();
     let mut agree_count: u32 = 0;
     for _ in 0..num_runs {
-        let (system, id1) = System::from_qubit(Qubit::new(1.0, 0.0));
-        let system = hadamard(system);
-        let (id2, system) = system.insert(Qubit::new(1.0, 0.0));
-        let system = cnot(system);
+        let (mut system, mut id1) = System::from_qubit(Qubit::new(1.0, 0.0));
+        system.apply(&HADAMARD, &[&mut id1]).unwrap();
+        let (mut id2, mut system) = system.insert(Qubit::new(1.0, 0.0));
+        system.apply(&CNOT, &[&mut id1, &mut id2]).unwrap();
 
         let mut ids = vec![id1, id2];
         ids.shuffle(&mut rng);

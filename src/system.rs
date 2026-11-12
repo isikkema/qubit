@@ -3,8 +3,8 @@ use std::{array, collections::HashMap, gca};
 use rand::{RngExt, rng};
 
 use crate::{
-    dot::Dot, inner_mul::InnerMul, qubit::Qubit, random_bool::RandomBool, tensor::Tensor,
-    tensor_mul::TensorMul, transposable::Transposable,
+    dot::Dot, dyn_tensor::DynTensor, gates::Gate, inner_mul::InnerMul, qubit::Qubit,
+    random_bool::RandomBool, tensor::Tensor, tensor_mul::TensorMul, transposable::Transposable,
 };
 
 #[derive(Debug, PartialEq, Eq, Hash)]
@@ -20,9 +20,11 @@ impl QubitId {
     }
 }
 
-const DIM<const Q: u8>: usize = const { 1 << Q };
+pub const DIM<const Q: u8>: usize = const { 1 << Q };
 const R<const Q: u8>: u8 = const { Q - 1 };
 const P<const Q: u8>: u8 = const { Q + 1 };
+
+const Q_USIZE<const Q: u8>: usize = const { Q as usize };
 
 pub struct System<const Q: u8> {
     pub(crate) state: Tensor<f64, gca!(DIM::<Q>)>,
@@ -46,6 +48,11 @@ impl System<1> {
         let (system, mut ids) = Self::from_state(qubit.get_state().clone());
         (system, ids.pop().unwrap())
     }
+
+    pub fn qubit(a: f64, b: f64) -> (Self, QubitId) {
+        let (system, mut ids) = Self::from_state(Tensor([a, b]));
+        (system, ids.pop().unwrap())
+    }
 }
 
 impl<const Q: u8> System<Q> {
@@ -59,10 +66,6 @@ impl<const Q: u8> System<Q> {
         }
 
         (Self { state, id_map }, ids)
-    }
-
-    pub fn get_ids(&self) -> &HashMap<QubitId, usize> {
-        &self.id_map
     }
 
     pub fn measure<R: RandomBool>(
@@ -90,7 +93,8 @@ impl<const Q: u8> System<Q> {
         let p_off: f64 = off_state.as_array().iter().map(|n| n.powi(2)).sum();
         let p_on: f64 = on_state.as_array().iter().map(|n| n.powi(2)).sum();
 
-        let is_on = rng.random_bool(p_on);
+        assert!(((p_on + p_off) - 1.0).abs() < 0.00001);
+        let is_on = rng.random_bool(p_on.clamp(0.0, 1.0));
 
         let new_system = if !is_on {
             self.measure_off(p_off, off_state)
@@ -119,6 +123,41 @@ impl<const Q: u8> System<Q> {
                 id_map,
             },
         )
+    }
+
+    pub fn apply<const I: u8>(
+        &mut self,
+        gate: &Gate<I>,
+        inputs: &[&mut QubitId; gca!(Q_USIZE::<I>)],
+    ) -> Result<(), ()> {
+        let min_qubit_idx = *self.id_map.get(inputs.first().ok_or(())?).ok_or(())?;
+        let mut max_qubit_idx = min_qubit_idx;
+        for input in &inputs[1..] {
+            if *self.id_map.get(input).ok_or(())? != max_qubit_idx + 1 {
+                return Err(());
+            }
+
+            max_qubit_idx += 1;
+        }
+
+        let mut full_gate_dyn: DynTensor<DynTensor<f64>> = Tensor([Tensor([1.0])]).into();
+        let i = Tensor([Tensor([1.0, 0.0]), Tensor([0.0, 1.0])]).into();
+        for _ in 0..min_qubit_idx {
+            full_gate_dyn = full_gate_dyn.tensor_mul(&i);
+        }
+
+        full_gate_dyn = full_gate_dyn.tensor_mul(&gate.matrix.clone().into());
+        for _ in (max_qubit_idx + 1)..Q.into() {
+            full_gate_dyn = full_gate_dyn.tensor_mul(&i);
+        }
+
+        let full_gate =
+            Tensor::<Tensor<f64, gca!(DIM::<Q>)>, gca!(DIM::<Q>)>::try_from(full_gate_dyn)
+                .map_err(|_| ())?;
+
+        self.state = full_gate.T().dot(&self.state);
+
+        Ok(())
     }
 
     fn measure_off(
@@ -175,7 +214,7 @@ mod tests {
             Tensor([1.0 / 4.0f64.sqrt(), 3.0f64.sqrt() / 4.0f64.sqrt()])
         );
 
-        assert_eq!(system.get_ids().values().collect::<Vec<_>>(), &[&0]);
+        assert_eq!(system.id_map.values().collect::<Vec<_>>(), &[&0]);
     }
 
     #[test]
@@ -198,7 +237,7 @@ mod tests {
         ));
 
         assert_eq!(
-            system.get_ids().values().collect::<HashSet<_>>(),
+            system.id_map.values().collect::<HashSet<_>>(),
             HashSet::from([&0, &1])
         );
     }

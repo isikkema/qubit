@@ -1,6 +1,6 @@
 use std::gca;
 
-use crate::tensor::Tensor;
+use crate::{dyn_tensor::DynTensor, tensor::Tensor};
 
 pub trait TensorMul<Rhs> {
     type Output;
@@ -28,6 +28,22 @@ where
         Tensor(std::array::from_fn(|idx| {
             self.0[idx / M].tensor_mul(&rhs.0[idx % M])
         }))
+    }
+}
+
+impl<T, U> TensorMul<DynTensor<U>> for DynTensor<T>
+where
+    T: TensorMul<U>,
+{
+    type Output = DynTensor<<T as TensorMul<U>>::Output>;
+
+    fn tensor_mul(&self, rhs: &DynTensor<U>) -> Self::Output {
+        DynTensor(
+            (0..self.len() * rhs.len())
+                .into_iter()
+                .map(|idx| self.0[idx / rhs.len()].tensor_mul(&rhs.0[idx % rhs.len()]))
+                .collect(),
+        )
     }
 }
 
@@ -129,6 +145,26 @@ mod tests {
             Tensor([Tensor([5.0, 10.0]), Tensor([6.0, 12.0])]),
             Tensor([Tensor([15.0, 20.0]), Tensor([18.0, 24.0])]),
         ]);
+
+        assert_eq!(expected, actual);
+    }
+
+    #[test]
+    fn test_dyn_2x2_tensor_mul_dyn_2x2() {
+        let actual = DynTensor([DynTensor([1.0, 2.0].into()), DynTensor([3.0, 4.0].into())].into())
+            .tensor_mul(&DynTensor(
+                [DynTensor([5.0, 6.0].into()), DynTensor([7.0, 8.0].into())].into(),
+            ));
+
+        let expected = DynTensor(
+            [
+                DynTensor([5.0, 6.0, 10.0, 12.0].into()),
+                DynTensor([7.0, 8.0, 14.0, 16.0].into()),
+                DynTensor([15.0, 18.0, 20.0, 24.0].into()),
+                DynTensor([21.0, 24.0, 28.0, 32.0].into()),
+            ]
+            .into(),
+        );
 
         assert_eq!(expected, actual);
     }

@@ -6,6 +6,7 @@
 
 pub mod basis;
 pub mod dot;
+pub mod dyn_tensor;
 pub mod filter;
 pub mod gates;
 pub mod inner_mul;
