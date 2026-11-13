@@ -27,7 +27,7 @@ const P<const Q: u8>: u8 = const { Q + 1 };
 const Q_USIZE<const Q: u8>: usize = const { Q as usize };
 
 pub struct System<const Q: u8> {
-    pub(crate) state: Tensor<f64, gca!(DIM::<Q>)>,
+    pub state: Tensor<f64, gca!(DIM::<Q>)>,
     pub(crate) id_map: HashMap<QubitId, usize>,
 }
 
@@ -83,10 +83,11 @@ impl<const Q: u8> System<Q> {
 
         self.state = basis.T().dot(&self.state);
 
-        let off_state = Tensor(array::from_fn(|idx| self.state[idx << qubit_idx]));
-        let on_state = Tensor(array::from_fn(|idx| {
-            self.state[(self.state.len() >> (qubit_idx + 1)) + (idx << qubit_idx)]
-        }));
+        let mut pattern = Self::pattern(self.state.len(), qubit_idx, false);
+        let off_state = Tensor(array::from_fn(|_| self.state[pattern.next().unwrap()]));
+
+        let mut pattern = Self::pattern(self.state.len(), qubit_idx, true);
+        let on_state = Tensor(array::from_fn(|_| self.state[pattern.next().unwrap()]));
 
         debug_assert!(self.state.len() % 2 == 0);
 
@@ -105,7 +106,7 @@ impl<const Q: u8> System<Q> {
         Some((is_on, new_system, (p_off, p_on)))
     }
 
-    pub fn insert(self, qubit: Qubit) -> (QubitId, System<gca!(P::<Q>)>) {
+    pub fn push_back(self, qubit: Qubit) -> (QubitId, System<gca!(P::<Q>)>) {
         let Self { state, mut id_map } = self;
 
         let mut new_state = Tensor::default();
@@ -115,6 +116,27 @@ impl<const Q: u8> System<Q> {
 
         let id = QubitId::new();
         id_map.insert(id.clone(), Q as usize);
+
+        (
+            id,
+            System {
+                state: new_state,
+                id_map,
+            },
+        )
+    }
+
+    pub fn push_front(self, qubit: Qubit) -> (QubitId, System<gca!(P::<Q>)>) {
+        let Self { state, mut id_map } = self;
+
+        let mut new_state = Tensor::default();
+        new_state
+            .0
+            .copy_from_slice(qubit.get_state().tensor_mul(&state).as_array());
+
+        let id = QubitId::new();
+        id_map.iter_mut().for_each(|(_, idx)| *idx += 1);
+        id_map.insert(id.clone(), 0);
 
         (
             id,
@@ -186,6 +208,26 @@ impl<const Q: u8> System<Q> {
             id_map: self.id_map,
         }
     }
+
+    fn pattern(len: usize, qubit_idx: usize, on: bool) -> impl Iterator<Item = usize> {
+        assert!(len.is_power_of_two());
+        assert!(len.bit_width() > (qubit_idx as u32) + 1);
+
+        let mut idx = 0;
+        let width = len >> (qubit_idx + 1);
+        let offset = if !on { 0 } else { width };
+
+        std::iter::from_fn(move || {
+            if idx >= len >> 1 {
+                return None;
+            }
+
+            let rv = idx / width * (width << 1) + offset + (idx % width);
+
+            idx += 1;
+            Some(rv)
+        })
+    }
 }
 
 impl From<Qubit> for (System<1>, QubitId) {
@@ -223,8 +265,8 @@ mod tests {
         let qubit2 = Qubit::new(1.0 / 3f64.sqrt(), 2f64.sqrt() / 3f64.sqrt());
 
         let system = System::new();
-        let (_, system) = system.insert(qubit1);
-        let (_, system) = system.insert(qubit2);
+        let (_, system) = system.push_back(qubit1);
+        let (_, system) = system.push_back(qubit2);
 
         assert!(mostly_eq(
             &system.state,
@@ -251,8 +293,8 @@ mod tests {
         let expected = qubit2.get_state().clone();
 
         let system = System::new();
-        let (id1, system) = system.insert(qubit1);
-        let (id2, system) = system.insert(qubit2);
+        let (id1, system) = system.push_back(qubit1);
+        let (id2, system) = system.push_back(qubit2);
 
         let basis = DEG_0.as_tensor().tensor_mul(DEG_0.as_tensor());
 
@@ -277,8 +319,8 @@ mod tests {
         let qubit2 = Qubit::new(1.0 / 3f64.sqrt(), 2f64.sqrt() / 3f64.sqrt());
 
         let system = System::new();
-        let (id1, system) = system.insert(qubit1);
-        let (id2, system) = system.insert(qubit2);
+        let (id1, system) = system.push_back(qubit1);
+        let (id2, system) = system.push_back(qubit2);
 
         let (value, system, (p_off, p_on)) =
             system.measure(id1, &basis, &mut StaticBool(true)).unwrap();
@@ -303,8 +345,8 @@ mod tests {
         let expected = qubit1.get_state().clone();
 
         let system = System::new();
-        let (id1, system) = system.insert(qubit1);
-        let (id2, system) = system.insert(qubit2);
+        let (id1, system) = system.push_back(qubit1);
+        let (id2, system) = system.push_back(qubit2);
 
         let (value, system, (p_off, p_on)) =
             system.measure(id2, &basis, &mut StaticBool(false)).unwrap();
@@ -327,8 +369,8 @@ mod tests {
         let qubit2 = Qubit::new(1.0 / 3f64.sqrt(), 2f64.sqrt() / 3f64.sqrt());
 
         let system = System::new();
-        let (id1, system) = system.insert(qubit1);
-        let (id2, system) = system.insert(qubit2);
+        let (id1, system) = system.push_back(qubit1);
+        let (id2, system) = system.push_back(qubit2);
 
         let (value, system, (p_off, p_on)) =
             system.measure(id2, &basis, &mut StaticBool(true)).unwrap();

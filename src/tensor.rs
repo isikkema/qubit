@@ -65,3 +65,11 @@ pub fn mostly_eq<const N: usize>(a: &Tensor<f64, N>, b: &Tensor<f64, N>) -> bool
         .zip(b.0.iter())
         .all(|(a, b)| (a - b).abs() < 0.00001)
 }
+
+pub fn mostly_eq_phase_shifted<const N: usize>(a: &Tensor<f64, N>, b: &Tensor<f64, N>) -> bool {
+    mostly_eq(a, b)
+        || a.0
+            .iter()
+            .zip(b.0.iter())
+            .all(|(a, b)| (a + b).abs() < 0.00001)
+}

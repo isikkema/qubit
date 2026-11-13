@@ -69,7 +69,7 @@ mod tests {
         let (mut system, mut id1) = System::from_qubit(input);
         system.apply(&HADAMARD, &[&mut id1]).unwrap();
 
-        let (mut id2, mut system) = system.insert(Qubit::new(1.0, 0.0));
+        let (mut id2, mut system) = system.push_back(Qubit::new(1.0, 0.0));
         system.apply(&CNOT, &[&mut id1, &mut id2]).unwrap();
 
         assert_eq!(

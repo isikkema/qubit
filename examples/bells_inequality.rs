@@ -24,7 +24,7 @@ fn main() -> Result<(), ParseIntError> {
     for _ in 0..num_runs {
         let (mut system, mut id1) = System::from_qubit(Qubit::new(1.0, 0.0));
         system.apply(&HADAMARD, &[&mut id1]).unwrap();
-        let (mut id2, mut system) = system.insert(Qubit::new(1.0, 0.0));
+        let (mut id2, mut system) = system.push_back(Qubit::new(1.0, 0.0));
         system.apply(&CNOT, &[&mut id1, &mut id2]).unwrap();
 
         let mut ids = vec![id1, id2];

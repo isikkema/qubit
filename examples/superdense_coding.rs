@@ -10,7 +10,7 @@ use rand::rng;
 fn main() {
     let (mut system, mut id_alice) = System::from_qubit(Qubit::new(1.0, 0.0));
     system.apply(&HADAMARD, &[&mut id_alice]).unwrap();
-    let (mut id_bob, mut system) = system.insert(Qubit::new(1.0, 0.0));
+    let (mut id_bob, mut system) = system.push_back(Qubit::new(1.0, 0.0));
     system.apply(&CNOT, &[&mut id_alice, &mut id_bob]).unwrap();
 
     // Alice does her work inside this block.
